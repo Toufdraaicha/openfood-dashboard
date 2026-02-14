@@ -1,0 +1,24 @@
+{
+    # FrankenPHP config
+    frankenphp
+    order php_server before file_server
+    # Hot reload en dev
+    watch
+}
+
+localhost {
+    root * /app/public
+    encode gzip
+
+    # Fichiers statiques servis directement
+    @static {
+        file
+        path *.css *.js *.ico *.png *.jpg *.jpeg *.gif *.svg *.woff *.woff2
+    }
+    handle @static {
+        file_server
+    }
+
+    # Tout le reste → FrankenPHP
+    php_server
+}

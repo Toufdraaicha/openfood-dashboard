@@ -7,14 +7,35 @@
         "php": ">=8.4",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "doctrine/doctrine-bundle": "^3.2",
+        "doctrine/doctrine-migrations-bundle": "^4.0",
+        "doctrine/orm": "^3.6",
+        "lexik/jwt-authentication-bundle": "^3.2",
+        "nelmio/api-doc-bundle": "^5.9",
+        "scheb/2fa-bundle": "^8.3",
+        "scheb/2fa-email": "^8.3",
+        "symfony/asset": "8.0.*",
+        "symfony/asset-mapper": "8.0.*",
+        "symfony/cache": "8.0.*",
         "symfony/console": "8.0.*",
         "symfony/dotenv": "8.0.*",
         "symfony/flex": "^2",
+        "symfony/form": "8.0.*",
         "symfony/framework-bundle": "8.0.*",
+        "symfony/http-client": "8.0.*",
+        "symfony/lock": "8.0.*",
+        "symfony/mailer": "8.0.*",
+        "symfony/password-hasher": "8.0.*",
+        "symfony/rate-limiter": "8.0.*",
         "symfony/runtime": "8.0.*",
-        "symfony/yaml": "8.0.*"
-    },
-    "require-dev": {
+        "symfony/security-bundle": "8.0.*",
+        "symfony/serializer": "8.0.*",
+        "symfony/twig-bundle": "8.0.*",
+        "symfony/ux-turbo": "^2.32",
+        "symfony/validator": "8.0.*",
+        "symfony/yaml": "8.0.*",
+        "twig/extra-bundle": "^3.23",
+        "zircote/swagger-php": "^5.8"
     },
     "config": {
         "allow-plugins": {
@@ -50,7 +71,8 @@
     "scripts": {
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
-            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+            "assets:install %PUBLIC_DIR%": "symfony-cmd",
+            "importmap:install": "symfony-cmd"
         },
         "post-install-cmd": [
             "@auto-scripts"
@@ -67,5 +89,16 @@
             "allow-contrib": false,
             "require": "8.0.*"
         }
+    },
+    "require-dev": {
+        "dama/doctrine-test-bundle": "^8.6",
+        "doctrine/doctrine-fixtures-bundle": "^4.3",
+        "phpunit/phpunit": "^13.0",
+        "symfony/browser-kit": "8.0.*",
+        "symfony/css-selector": "8.0.*",
+        "symfony/debug-bundle": "8.0.*",
+        "symfony/stopwatch": "8.0.*",
+        "symfony/web-profiler-bundle": "8.0.*",
+        "zenstruck/foundry": "^2.9"
     }
 }
