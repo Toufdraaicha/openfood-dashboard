@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vérification 2FA — OFF Dashboard{% endblock %}
+
+{% block body %}
+    <div class="min-h-screen flex items-center justify-center bg-gray-950 px-4">
+
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-40 -right-40 w-96 h-96 bg-green-500 rounded-full opacity-5 blur-3xl"></div>
+            <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500 rounded-full opacity-5 blur-3xl"></div>
+        </div>
+
+        <div class="relative w-full max-w-md">
+
+            {# Logo #}
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-green-500/10 border border-green-500/20 mb-4">
+                    <span class="text-3xl">🔐</span>
+                </div>
+                <h1 class="text-2xl font-bold text-white">Vérification</h1>
+                <p class="text-gray-500 text-sm mt-1">Un code a été envoyé à votre email</p>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl">
+
+                <h2 class="text-lg font-semibold text-white mb-2">Code de vérification</h2>
+                <p class="text-gray-500 text-sm mb-6">
+                    Entrez le code à 6 chiffres reçu par email. Il expire dans <span class="text-yellow-400">10 minutes</span>.
+                </p>
+
+                {% if authenticationError %}
+                    <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-center gap-2">
+                        <span>⚠️</span>
+                        <span>{{ authenticationError.messageKey | trans(authenticationError.messageData, 'security') }}</span>
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{{ path('2fa_login_check') }}" class="space-y-4">
+
+                    <div>
+                        <label for="_auth_code" class="block text-sm font-medium text-gray-400 mb-1.5">
+                            Code à 6 chiffres
+                        </label>
+                        <input
+                            type="text"
+                            id="_auth_code"
+                            name="_auth_code"
+                            required
+                            autofocus
+                            maxlength="6"
+                            autocomplete="one-time-code"
+                            inputmode="numeric"
+                            pattern="[0-9]{6}"
+                            class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-center text-2xl tracking-widest font-mono placeholder-gray-600 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition"
+                            placeholder="000000"
+                        >
+                    </div>
+
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('2fa') }}">
+
+                    <button
+                        type="submit"
+                        class="w-full py-2.5 px-4 rounded-lg bg-green-600 hover:bg-green-500 text-white font-medium transition focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                    >
+                        Vérifier le code
+                    </button>
+
+                </form>
+
+                <div class="mt-4 pt-4 border-t border-gray-800 text-center">
+                    <a href="{{ path('app_login') }}" class="text-sm text-gray-500 hover:text-gray-400 transition">
+                        ← Retour à la connexion
+                    </a>
+                </div>
+            </div>
+
+            <p class="text-center text-gray-600 text-xs mt-6">
+                Consultez <a href="http://localhost:8025" target="_blank" class="text-blue-500 hover:underline">Mailpit</a> pour voir l'email en dev
+            </p>
+        </div>
+    </div>
+{% endblock %}
