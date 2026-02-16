@@ -25,8 +25,9 @@ ENV XDEBUG_MODE=off
 RUN install-php-extensions xdebug
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 COPY docker/php/conf.d/app.dev.ini $PHP_INI_DIR/conf.d/app.dev.ini
+COPY docker/caddy/Caddyfile /etc/caddy/Caddyfile
 
-CMD ["frankenphp", "run", "--watch"]
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch"]
 
 # ── Prod ─────────────────────────────────────────────────────────────────────
 FROM base AS prod

@@ -22,7 +22,9 @@ COPY docker/frankenphp/Caddyfile /etc/caddy/Caddyfile
 COPY docker/frankenphp/php.ini $PHP_INI_DIR/conf.d/99-custom.ini
 
 # Hot reload natif FrankenPHP
-CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch"]
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch", "--listen", "0.0.0.0:9000"]
+
+RUN chmod 777 /var/run/frankenphp.sock
 
 # ── Prod ─────────────────────────────────────────
 FROM base AS prod
