@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controller\Admin;
+namespace App\UI\Controller\Admin;
 
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -13,7 +13,7 @@ use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
 
-class OpenFoodFactsClientAdminDashboardController extends AbstractDashboardController
+class AdminDashboardController extends AbstractDashboardController
 {
     public function __construct(
         private readonly ChartBuilderInterface $chartBuilder,
