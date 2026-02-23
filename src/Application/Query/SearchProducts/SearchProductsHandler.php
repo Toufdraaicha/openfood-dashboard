@@ -6,11 +6,12 @@ namespace App\Application\Query\SearchProducts;
 
 use App\Application\Port\OpenFoodFactsClientInterface;
 
-final class SearchProductsHandler
+final readonly class SearchProductsHandler
 {
     public function __construct(
-        private readonly OpenFoodFactsClientInterface $client,
-    ) {}
+        private OpenFoodFactsClientInterface $client,
+    ) {
+    }
 
     public function handle(SearchProductsQuery $query): array
     {
