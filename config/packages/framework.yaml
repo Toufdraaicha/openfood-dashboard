@@ -6,6 +6,11 @@ framework:
         cookie_samesite: lax
         storage_factory_id: session.storage.factory.native
 
+    http_client:
+            scoped_clients:
+                openfoodfacts.client:
+                    base_uri: '%env(OPENFOODFACTS_BASE_URL)%'
+
 when@test:
     framework:
         test: true

@@ -27,7 +27,8 @@ class UserCrudController extends AbstractCrudController
 {
     public function __construct(
         private readonly UserPasswordHasherInterface $passwordHasher,
-    ) {}
+    ) {
+    }
 
     public static function getEntityFqcn(): string
     {
@@ -51,20 +52,20 @@ class UserCrudController extends AbstractCrudController
         yield IdField::new('id')->hideOnForm();
         yield EmailField::new('email', 'Email');
 
-        if ($pageName === Crud::PAGE_NEW) {
-            yield TextField::new('plainPassword', 'Mot de passe')
-                ->setRequired(true);
-        }
+        yield TextField::new('plainPassword', 'Mot de passe')
+            ->setFormType(\Symfony\Component\Form\Extension\Core\Type\PasswordType::class)
+            ->setRequired(Crud::PAGE_NEW === $pageName)
+            ->onlyOnForms();
 
         yield ChoiceField::new('roles', 'Rôles')
             ->setChoices([
-                'Utilisateur'    => 'ROLE_USER',
+                'Utilisateur' => 'ROLE_USER',
                 'Administrateur' => 'ROLE_ADMIN',
             ])
             ->allowMultipleChoices()
             ->renderAsBadges([
                 'ROLE_ADMIN' => 'danger',
-                'ROLE_USER'  => 'success',
+                'ROLE_USER' => 'success',
             ]);
 
         yield BooleanField::new('isLocked', 'Bloqué')
@@ -80,7 +81,7 @@ class UserCrudController extends AbstractCrudController
     {
         $unlockAction = Action::new('unlockUser', 'Débloquer', 'fa fa-unlock')
             ->linkToCrudAction('unlockUser')
-            ->displayIf(fn(User $user) => $user->isLocked())
+            ->displayIf(fn (User $user) => $user->isLocked())
             ->setCssClass('btn btn-warning btn-sm');
 
         return $actions

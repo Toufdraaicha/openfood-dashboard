@@ -1,0 +1,68 @@
+<div class="space-y-4" data-widget-target="productCard">
+    
+    {# Image + Infos principales #}
+    <div class="flex gap-4 items-start">
+        <div class="w-20 h-20 rounded-lg bg-white flex items-center justify-center shrink-0 overflow-hidden">
+            <img 
+                data-widget-target="productImage"
+                src="" 
+                alt="Produit"
+                class="w-full h-full object-contain"
+                onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 font-size=%2740%27%3E📦%3C/text%3E%3C/svg%3E'"
+            >
+        </div>
+
+        <div class="flex-1 min-w-0">
+            <h4 data-widget-target="productName" class="font-medium text-white text-sm leading-tight truncate">
+                Chargement...
+            </h4>
+            <p data-widget-target="productBrand" class="text-xs text-gray-500 mt-0.5 truncate">
+                —
+            </p>
+            <div class="flex items-center gap-2 mt-2">
+                <span data-widget-target="nutriScore" 
+                      class="inline-block text-xs font-bold px-2 py-0.5 rounded bg-gray-700 text-gray-400">
+                    ?
+                </span>
+                <span data-widget-target="ecoscore"
+                      class="inline-block text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-500">
+                    Eco-Score: ?
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {# Informations nutritionnelles #}
+    <div class="grid grid-cols-2 gap-2 pt-3 border-t border-gray-800">
+        <div class="text-center p-2 rounded-lg bg-gray-800/50">
+            <div class="text-xs text-gray-500 mb-0.5">Énergie</div>
+            <div data-widget-target="energy" class="text-sm font-medium text-white">— kJ</div>
+        </div>
+        <div class="text-center p-2 rounded-lg bg-gray-800/50">
+            <div class="text-xs text-gray-500 mb-0.5">Matières grasses</div>
+            <div data-widget-target="fat" class="text-sm font-medium text-white">— g</div>
+        </div>
+        <div class="text-center p-2 rounded-lg bg-gray-800/50">
+            <div class="text-xs text-gray-500 mb-0.5">Sucres</div>
+            <div data-widget-target="sugars" class="text-sm font-medium text-white">— g</div>
+        </div>
+        <div class="text-center p-2 rounded-lg bg-gray-800/50">
+            <div class="text-xs text-gray-500 mb-0.5">Sel</div>
+            <div data-widget-target="salt" class="text-sm font-medium text-white">— g</div>
+        </div>
+    </div>
+
+    {# Lien vers OFF #}
+    <a data-widget-target="offLink" 
+       href="#" 
+       target="_blank"
+       class="block text-center text-xs text-blue-400 hover:text-blue-300 transition py-2 border-t border-gray-800">
+        Voir sur Open Food Facts →
+    </a>
+
+    {# État vide #}
+    <div data-widget-target="emptyState" class="hidden text-center py-8 text-gray-600 text-sm">
+        <div class="text-3xl mb-2">📦</div>
+        <p>Configurez le code-barres</p>
+    </div>
+</div>
