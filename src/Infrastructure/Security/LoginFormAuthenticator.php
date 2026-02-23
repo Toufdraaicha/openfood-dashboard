@@ -77,7 +77,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         ]);
 
         // Rediriger vers 2FA
-        return new RedirectResponse($this->urlGenerator->generate('2fa_login'));
+        return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response

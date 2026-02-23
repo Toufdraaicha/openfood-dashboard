@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
+use App\Domain\User\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,12 +21,16 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 
 class AdminLoginFormAuthenticator extends AbstractLoginFormAuthenticator
 {
+
     public function __construct(
         private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly EntityManagerInterface $em,
+        private readonly LoggerInterface $securityLogger,
     ) {}
 
     public function authenticate(Request $request): Passport
     {
+
         $email = $request->request->getString('email');
         $password = $request->request->getString('password');
 
@@ -31,11 +38,11 @@ class AdminLoginFormAuthenticator extends AbstractLoginFormAuthenticator
             new UserBadge($email, function($userIdentifier) {
                 // Charger l'utilisateur et vérifier ROLE_ADMIN
                 $user = $this->em->getRepository(User::class)->findOneBy(['email' => $userIdentifier]);
-                
+
                 if (!$user || !in_array('ROLE_ADMIN', $user->getRoles(), true)) {
                     throw new CustomUserMessageAuthenticationException('Accès réservé aux administrateurs.');
                 }
-                
+
                 return $user;
             }),
             new PasswordCredentials($password),

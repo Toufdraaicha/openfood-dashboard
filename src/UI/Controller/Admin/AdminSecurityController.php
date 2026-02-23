@@ -14,6 +14,7 @@ class AdminSecurityController extends AbstractController
     #[Route('/admin/login', name: 'admin_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
+        dd($this->getUser());
         if ($this->getUser() && in_array('ROLE_ADMIN', $this->getUser()->getRoles(), true)) {
             return $this->redirectToRoute('admin');
         }

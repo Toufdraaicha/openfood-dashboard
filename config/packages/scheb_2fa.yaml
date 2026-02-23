@@ -11,7 +11,6 @@ scheb_two_factor:
         sender_email: noreply@off-dashboard.local
         sender_name: 'OFF Dashboard'
         digits: 6
-        # ✅ Le template pour le FORMULAIRE (pas l'email)
-        template: security/2fa_email.html.twig
-
-
+        # ✅ IMPORTANT: Ce template est pour le FORMULAIRE de saisie
+        template: security/2fa.html.twig
+        # Le template email est défini dans config/packages/scheb_two_factor_email.yaml

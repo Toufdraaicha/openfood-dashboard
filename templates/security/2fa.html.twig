@@ -7,34 +7,55 @@
     
     <div class="relative w-full max-w-md animate-fade-in">
         
-        {# Logo & Titre #}
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 mb-4 shadow-2xl">
-                <span class="text-4xl">🔐</span>
+            <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 mb-6 shadow-2xl">
+                <span class="text-5xl">🔐</span>
             </div>
-            <h1 class="text-3xl font-bold text-white mb-2">Code de vérification</h1>
-            <p class="text-white/70">Un code à 6 chiffres vous a été envoyé par email</p>
+            <h1 class="text-4xl font-bold text-white mb-3">Code de vérification</h1>
+            <p class="text-white/80 text-lg">Consultez vos emails</p>
         </div>
 
-        {# Card formulaire #}
         <div class="bg-white rounded-3xl p-8 shadow-2xl">
 
-            {# Erreur #}
+            {# ✅ Erreur - gérer string OU objet #}
             {% if authenticationError %}
-                <div class="mb-6 p-4 rounded-2xl bg-red-50 border-2 border-red-200 flex items-start gap-3">
-                    <span class="text-2xl">😕</span>
+                <div class="mb-6 p-4 rounded-2xl bg-red-50 border-2 border-red-200 flex items-start gap-3 animate-fade-in">
+                    <span class="text-3xl">❌</span>
                     <div>
-                        <p class="font-semibold text-red-900 text-sm">Code incorrect</p>
-                        <p class="text-red-700 text-sm mt-1">{{ authenticationError.messageKey|trans(authenticationError.messageData, 'security') }}</p>
+                        <p class="font-bold text-red-900 text-base">Erreur</p>
+                        <p class="text-red-700 text-sm mt-1">
+                            {# Si c'est un objet avec messageKey #}
+                            {% if authenticationError.messageKey is defined %}
+                                {{ authenticationError.messageKey|trans(authenticationError.messageData, 'security') }}
+                            {# Sinon c'est une string #}
+                            {% else %}
+                                {{ authenticationError }}
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
             {% endif %}
 
-            <form method="post" action="{{ path('2fa_login_check') }}" class="space-y-5" novalidate>
+            {# Info email envoyé #}
+            <div class="mb-6 p-4 rounded-2xl bg-blue-50 border-2 border-blue-200 flex items-start gap-3">
+                <span class="text-3xl">📧</span>
+                <div class="flex-1">
+                    <p class="font-bold text-blue-900 text-sm">Email envoyé !</p>
+                    <p class="text-blue-800 text-xs mt-1">
+                        Un code à 6 chiffres a été envoyé à<br>
+                        <strong>{{ app.user.email }}</strong>
+                    </p>
+                </div>
+            </div>
 
-                {# Code 2FA #}
+            {# FORMULAIRE DE SAISIE #}
+            <form method="post" action="{{ path('2fa_login_check') }}" class="space-y-6" novalidate>
+
                 <div>
-                    <label for="_auth_code" class="label">Code de vérification</label>
+                    <label for="_auth_code" class="block text-base font-semibold text-gray-800 mb-3">
+                        Entrez le code de vérification
+                    </label>
+                    
                     <input
                         type="text"
                         id="_auth_code"
@@ -46,37 +67,54 @@
                         autocomplete="one-time-code"
                         inputmode="numeric"
                         pattern="[0-9]{6}"
-                        class="input text-center text-2xl tracking-[0.5em] font-mono"
+                        class="w-full px-4 py-4 rounded-xl border-2 border-gray-300 text-3xl text-center tracking-[0.8em] font-mono font-bold focus:border-purple-500 focus:outline-none focus:ring-4 focus:ring-purple-100 transition"
                         placeholder="000000"
                     >
-                    <p class="text-xs text-gray-600 mt-2">💡 Le code expire dans 10 minutes</p>
-                </div>
-
-                {# Info box #}
-                <div class="p-4 rounded-2xl bg-blue-50 border-2 border-blue-200">
-                    <p class="text-blue-900 text-xs leading-relaxed">
-                        <strong>📧 Vérifiez votre boîte mail</strong><br>
-                        Le code a été envoyé à <strong>{{ app.user.email }}</strong>
+                    
+                    <p class="text-xs text-gray-600 mt-2 text-center">
+                        💡 Le code est composé de 6 chiffres
                     </p>
                 </div>
 
-                {# CSRF #}
-                <input type="hidden" name="_csrf_token" value="{{ csrf_token('2fa') }}">
+                {# Avertissement expiration #}
+                <div class="p-4 rounded-2xl bg-yellow-50 border-2 border-yellow-200">
+                    <p class="text-yellow-900 text-sm leading-relaxed">
+                        <strong>⏱️ Le code expire dans 10 minutes</strong><br>
+                        <span class="text-xs text-yellow-800">Après expiration, vous devrez vous reconnecter</span>
+                    </p>
+                </div>
+
+                {# CSRF Token pour 2FA #}
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('two_factor') }}">
 
                 {# Submit #}
-                <button
-                    type="submit"
-                    class="btn btn-primary w-full justify-center">
-                    Vérifier le code →
+                <button type="submit" class="w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    ✅ Vérifier le code
                 </button>
 
             </form>
 
-            {# Retour #}
-            <div class="mt-6 pt-4 border-t-2 border-gray-100 text-center">
-                <a href="{{ path('app_login') }}" class="text-sm text-gray-600 hover:text-gray-800 transition">
-                    ← Retour à la connexion
-                </a>
+            {# Actions secondaires #}
+            <div class="mt-6 pt-6 border-t-2 border-gray-100 space-y-3">
+                
+                {# Lien Mailpit en dev #}
+                {% if app.debug %}
+                    <div class="text-center">
+                        <a href="http://localhost:8025" target="_blank" 
+                           class="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium">
+                            📬 Ouvrir Mailpit (voir le code)
+                        </a>
+                    </div>
+                {% endif %}
+                
+                {# Retour login #}
+                <div class="text-center">
+                    <a href="{{ path('app_login') }}" 
+                       class="text-sm text-gray-600 hover:text-gray-800 transition">
+                        ← Retour à la connexion
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -87,29 +125,48 @@
                     <span>🛠️</span>
                     <span>Mode développement</span>
                 </p>
-                <p class="text-sm text-white/80">
-                    📧 Consultez Mailpit : <a href="http://localhost:8025" target="_blank" class="underline hover:text-white">localhost:8025</a>
-                </p>
+                <div class="text-sm text-white/80 space-y-1">
+                    <p>📧 Les emails 2FA sont dans Mailpit</p>
+                    <p>🔗 <a href="http://localhost:8025" target="_blank" class="underline">localhost:8025</a></p>
+                    <p>⏱️ Le code expire après 10 minutes</p>
+                </div>
             </div>
         {% endif %}
 
     </div>
 </div>
 
+{# JavaScript auto-submit #}
 <script>
-// Auto-submit quand 6 chiffres saisis
-const input = document.getElementById('_auth_code');
-input.addEventListener('input', function() {
-    // Garder seulement les chiffres
-    this.value = this.value.replace(/\D/g, '');
+(function() {
+    const input = document.getElementById('_auth_code');
+    if (!input) return;
     
-    // Auto-submit si 6 chiffres
-    if (this.value.length === 6) {
-        this.closest('form').submit();
-    }
-});
-
-// Focus automatique
-input.focus();
+    // Focus automatique
+    input.focus();
+    
+    // Écouter la saisie
+    input.addEventListener('input', function() {
+        // Garder seulement les chiffres
+        this.value = this.value.replace(/\D/g, '');
+        
+        // Auto-submit si 6 chiffres
+        if (this.value.length === 6) {
+            console.log('✅ 6 chiffres saisis, envoi...');
+            setTimeout(() => {
+                this.closest('form').submit();
+            }, 300);
+        }
+    });
+    
+    // Empêcher saisie non-chiffres
+    input.addEventListener('keypress', function(e) {
+        if (!/[0-9]/.test(e.key) && e.key !== 'Enter') {
+            e.preventDefault();
+        }
+    });
+    
+    console.log('🔐 2FA form ready');
+})();
 </script>
 {% endblock %}
