@@ -33,17 +33,40 @@ class LoginAttempt
 
     public function __construct(?User $user, string $email, string $ipAddress, bool $success)
     {
-        $this->user        = $user;
-        $this->email       = $email;
-        $this->ipAddress   = $ipAddress;
-        $this->success     = $success;
+        $this->user = $user;
+        $this->email = $email;
+        $this->ipAddress = $ipAddress;
+        $this->success = $success;
         $this->attemptedAt = new \DateTimeImmutable();
     }
 
-    public function getId(): int                         { return $this->id; }
-    public function getUser(): ?User                     { return $this->user; }
-    public function getEmail(): string                   { return $this->email; }
-    public function getIpAddress(): string               { return $this->ipAddress; }
-    public function isSuccess(): bool                    { return $this->success; }
-    public function getAttemptedAt(): \DateTimeImmutable { return $this->attemptedAt; }
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    public function getIpAddress(): string
+    {
+        return $this->ipAddress;
+    }
+
+    public function isSuccess(): bool
+    {
+        return $this->success;
+    }
+
+    public function getAttemptedAt(): \DateTimeImmutable
+    {
+        return $this->attemptedAt;
+    }
 }

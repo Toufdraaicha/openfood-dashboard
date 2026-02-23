@@ -41,48 +41,70 @@ class Dashboard
 
     public function __construct(User $user, string $name = 'Mon Dashboard')
     {
-        $this->user      = $user;
-        $this->name      = $name;
+        $this->user = $user;
+        $this->name = $name;
         $this->updatedAt = new \DateTimeImmutable();
-        $this->widgets   = new ArrayCollection();
+        $this->widgets = new ArrayCollection();
     }
 
-    public function addWidget(WidgetType $type, int $position, ?string $title = null, array $config = []): Widget
+    public function getUser(): User
     {
-        $widget = new Widget($this, $type, $position, $title, $config);
-        $this->widgets->add($widget);
-        $this->touch();
-        return $widget;
+        return $this->user;
+    }
+
+    public function addWidget(Widget $widget): void
+    {
+        if (!$this->widgets->contains($widget)) {
+            $this->widgets->add($widget);
+            $widget->setDashboard($this);
+        }
     }
 
     public function removeWidget(Widget $widget): void
     {
-        $this->widgets->removeElement($widget);
-        $this->touch();
-    }
-
-    public function reorderWidgets(array $order): void
-    {
-        foreach ($this->widgets as $widget) {
-            if (isset($order[$widget->getId()])) {
-                $widget->updatePosition($order[$widget->getId()]);
-            }
+        if ($this->widgets->removeElement($widget)) {
+            $widget->setDashboard(null);
         }
-        $this->touch();
     }
-
-    public function rename(string $name): void { $this->name = $name; $this->touch(); }
-
-    private function touch(): void { $this->updatedAt = new \DateTimeImmutable(); }
 
     #[ORM\PrePersist]
     #[ORM\PreUpdate]
-    public function onUpdate(): void { $this->updatedAt = new \DateTimeImmutable(); }
+    public function updateTimestamp(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
 
-    public function getId(): string                    { return $this->id; }
-    public function getUser(): User                    { return $this->user; }
-    public function getName(): string                  { return $this->name; }
-    public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
-    public function getWidgets(): Collection           { return $this->widgets; }
-    public function getWidgetCount(): int              { return $this->widgets->count(); }
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getWidgets(): Collection
+    {
+        return $this->widgets;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): void
+    {
+        $this->name = $name;
+    }
+    public function getWidgetCount(): int
+    {
+        return $this->widgets->count();
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): void
+    {
+        $this->updatedAt = $updatedAt;
+    }
 }

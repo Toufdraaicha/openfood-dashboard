@@ -10,7 +10,10 @@ use App\Domain\User\Entity\User;
 interface DashboardRepositoryInterface
 {
     public function findById(string $id): ?Dashboard;
+
     public function findByUser(User $user): ?Dashboard;
+
     public function save(Dashboard $dashboard): void;
+
     public function remove(Dashboard $dashboard): void;
 }

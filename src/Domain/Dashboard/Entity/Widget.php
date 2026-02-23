@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Dashboard\Entity;
 
+use App\Domain\Dashboard\Enum\WidgetType;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -38,26 +39,75 @@ class Widget
     public function __construct(Dashboard $dashboard, WidgetType $type, int $position, ?string $title = null, array $config = [])
     {
         $this->dashboard = $dashboard;
-        $this->type      = $type;
-        $this->position  = $position;
-        $this->title     = $title ?? $type->defaultTitle();
-        $this->config    = empty($config) ? $type->defaultConfig() : $config;
+        $this->type = $type;
+        $this->position = $position;
+        $this->title = $title ?? $type->defaultTitle();
+        $this->config = empty($config) ? $type->defaultConfig() : $config;
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function updateConfig(array $config): void   { $this->config = $config; }
-    public function updatePosition(int $position): void { $this->position = $position; }
-    public function rename(string $title): void         { $this->title = $title; }
+    public function updateConfig(array $config): void
+    {
+        $this->config = $config;
+    }
 
-    public function getId(): string                    { return $this->id; }
-    public function getDashboard(): Dashboard          { return $this->dashboard; }
-    public function getType(): WidgetType              { return $this->type; }
-    public function getPosition(): int                 { return $this->position; }
-    public function getTitle(): string                 { return $this->title; }
-    public function getConfig(): array                 { return $this->config; }
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function updatePosition(int $position): void
+    {
+        $this->position = $position;
+    }
+
+    public function rename(string $title): void
+    {
+        $this->title = $title;
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getDashboard(): Dashboard
+    {
+        return $this->dashboard;
+    }
+
+    public function getType(): WidgetType
+    {
+        return $this->type;
+    }
+
+    public function getPosition(): int
+    {
+        return $this->position;
+    }
+
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    public function getConfig(): array
+    {
+        return $this->config;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
     public function getConfigValue(string $key, mixed $default = null): mixed
     {
         return $this->config[$key] ?? $default;
+    }
+
+    public function setDashboard(Dashboard $param)
+    {
+        $this->dashboard = $param;
+    }
+    public function getConfigValueInt(string $key, int $default): int
+    {
+        $value = $this->config[$key] ?? $default;
+        return is_numeric($value) ? (int) $value : $default;
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Dashboard\Entity;
+namespace App\Domain\Dashboard\Enum;
 
 enum WidgetType: string
 {

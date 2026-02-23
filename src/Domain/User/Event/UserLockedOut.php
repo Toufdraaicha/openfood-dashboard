@@ -10,5 +10,6 @@ final readonly class UserLockedOut
         public string $userId,
         public string $email,
         public \DateTimeImmutable $lockedAt,
-    ) {}
+    ) {
+    }
 }
