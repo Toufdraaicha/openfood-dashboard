@@ -1,241 +1,213 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Dashboard — OFF{% endblock %}
+{% block title %}Mon tableau de bord{% endblock %}
 
 {% block body %}
-    <div class="min-h-screen bg-gray-950">
+<div class="min-h-screen" style="background: linear-gradient(180deg, #f8f9ff 0%, #e8eeff 100%);"
+     data-controller="dashboard"
+     data-dashboard-reorder-url-value="{{ path('app_dashboard_reorder') }}">
 
-        {# Navbar #}
-        <nav class="border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="text-xl">🥗</span>
-                    <span class="font-semibold text-white">OFF Dashboard</span>
-                    <span class="text-gray-600 text-sm hidden sm:block">{{ dashboard.name }}</span>
+    {# Navbar personnalisée #}
+    <nav class="border-b-2 border-indigo-100 bg-white/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg"
+                             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <span class="text-2xl"></span>
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-bold text-gray-800">OFF Dashboard</h1>
+                            <p class="text-xs text-gray-500">Vos données alimentaires</p>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="flex items-center gap-3">
                     {% if is_granted('ROLE_ADMIN') %}
-                        <a href="/admin" class="text-xs px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20 transition">
-                            Admin
+                        <a href="/admin"
+                           class="px-3 py-2 rounded-xl bg-purple-50 border-2 border-purple-200 text-purple-700 hover:bg-purple-100 transition text-sm font-semibold">
+                            👑 Admin
                         </a>
                     {% endif %}
-                    <span class="text-sm text-gray-500 hidden sm:block">{{ app.user.email }}</span>
+                    <div class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border-2 border-gray-200">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span class="text-sm text-gray-700 font-medium">{{ app.user.email }}</span>
+                    </div>
                     <a href="{{ path('app_logout') }}"
-                       class="text-sm px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 transition">
-                        Déconnexion
+                       class="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition text-sm font-semibold border-2 border-gray-200">
+                        Se déconnecter
                     </a>
                 </div>
             </div>
-        </nav>
+        </div>
+    </nav>
 
-        <main class="max-w-7xl mx-auto px-4 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-            {# Header #}
+        {# Header chaleureux #}
+        <div class="mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">
+                        {% set hour = 'now'|date('H') %}
+                        {% if hour < 12 %}Bonjour ! ☀️
+                        {% elseif hour < 18 %}Bon après-midi ! 👋
+                        {% else %}Bonsoir ! 🌙{% endif %}
+                    </h2>
+                    <div class="flex items-center gap-3 text-sm text-gray-600">
+                        <span class="flex items-center gap-1">
+                            <span>📊</span>
+                            <span class="font-medium">{{ dashboard.widgets|length }} widget{{ dashboard.widgets|length > 1 ? 's' : '' }}</span>
+                        </span>
+                        <span>•</span>
+                        <span>Mis à jour {{ dashboard.updatedAt|date('d/m/Y') }}</span>
+                    </div>
+                </div>
+
+                <button
+                    data-action="click->dashboard#openModal"
+                    class="group px-6 py-3 rounded-2xl font-bold text-white shadow-lg transition-all hover:shadow-xl hover:-translate-y-1 flex items-center gap-2"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <span class="text-xl">+</span>
+                    <span>Ajouter un widget</span>
+                </button>
+            </div>
+        </div>
+
+        {# État vide chaleureux #}
+        {% if dashboard.widgets is empty %}
+            <div class="text-center py-20">
+                <div class="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 mb-6">
+                    <span class="text-6xl">📊</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">Votre tableau de bord est vide</h3>
+                <p class="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+                    Commencez par ajouter votre premier widget pour découvrir les données nutritionnelles des produits alimentaires
+                </p>
+                <button
+                    data-action="click->dashboard#openModal"
+                    class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <span class="text-xl">✨</span>
+                    <span>Créer mon premier widget</span>
+                </button>
+            </div>
+        {% else %}
+            <div data-dashboard-target="grid"
+                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for widget in dashboard.widgets %}
+                    <div class="group relative rounded-3xl bg-white border-2 border-gray-200 hover:border-purple-300 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+                         data-controller="widget"
+                         data-widget-id-value="{{ widget.id }}"
+                         data-widget-type-value="{{ widget.type.value }}"
+                         data-widget-data-url-value="{{ path('app_widget_data', {id: widget.id}) }}"
+                         data-widget-id="{{ widget.id }}">
+
+                        {# Accent coloré #}
+                        <div class="absolute top-0 inset-x-0 h-2 rounded-t-3xl
+                                    {% if widget.type.value == 'products_search' %}bg-gradient-to-r from-blue-400 to-cyan-400
+                                    {% elseif widget.type.value == 'nutri_score_stats' %}bg-gradient-to-r from-green-400 to-emerald-400
+                                    {% elseif widget.type.value == 'category_top' %}bg-gradient-to-r from-orange-400 to-amber-400
+                                    {% else %}bg-gradient-to-r from-purple-400 to-pink-400{% endif %}"></div>
+
+                        {# Header #}
+                        <div class="flex items-center justify-between px-5 py-4 border-b-2 border-gray-100">
+                            <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <div class="widget-handle cursor-grab active:cursor-grabbing flex items-center justify-center w-12 h-12 rounded-2xl shrink-0
+                                            {% if widget.type.value == 'products_search' %}bg-blue-50 border-2 border-blue-200
+                                            {% elseif widget.type.value == 'nutri_score_stats' %}bg-green-50 border-2 border-green-200
+                                            {% elseif widget.type.value == 'category_top' %}bg-orange-50 border-2 border-orange-200
+                                            {% else %}bg-purple-50 border-2 border-purple-200{% endif %}">
+                                    <span class="text-2xl">
+                                        {% if widget.type.value == 'products_search' %}🔍
+                                        {% elseif widget.type.value == 'nutri_score_stats' %}📊
+                                        {% elseif widget.type.value == 'category_top' %}🏆
+                                        {% else %}📦{% endif %}
+                                    </span>
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-sm font-bold text-gray-800 truncate">{{ widget.title }}</h3>
+                                    <p class="text-xs text-gray-500 truncate">{{ widget.type.label() }}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                    data-action="click->widget#openConfig"
+                                    class="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-purple-600 transition"
+                                    title="Configurer">
+                                    ⚙️
+                                </button>
+                                <button
+                                    data-action="click->widget#delete"
+                                    class="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-red-600 transition"
+                                    title="Supprimer">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+
+                        {# Body #}
+                        <div class="p-5" data-widget-target="body">
+                            <div class="flex items-center justify-center h-40">
+                                <div class="text-gray-400 text-sm">Chargement...</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+    </main>
+
+    {# Modal chaleureux #}
+    <div id="modal-add-widget" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-2xl p-8 shadow-2xl border-2 border-gray-200">
             <div class="flex items-center justify-between mb-8">
                 <div>
-                    <h1 class="text-2xl font-bold text-white">{{ dashboard.name }}</h1>
-                    <p class="text-gray-500 text-sm mt-1">
-                        {{ dashboard.widgetCount }} widget{{ dashboard.widgetCount > 1 ? 's' : '' }} •
-                        Mis à jour le {{ dashboard.updatedAt|date('d/m/Y à H:i') }}
-                    </p>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-1">Choisissez votre widget</h2>
+                    <p class="text-gray-600 text-sm">Quel type de données souhaitez-vous visualiser ?</p>
                 </div>
-                <button
-                    onclick="document.getElementById('modal-add-widget').classList.remove('hidden')"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition"
-                >
-                    <span class="text-lg leading-none">+</span>
-                    Ajouter un widget
+                <button data-action="click->dashboard#closeModal"
+                    class="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-800 transition text-xl">
+                    ✕
                 </button>
             </div>
 
-            {# Grid widgets #}
-            {% if dashboard.widgets is empty %}
-                <div class="text-center py-32">
-                    <div class="text-6xl mb-4">📊</div>
-                    <p class="text-xl font-medium text-gray-500">Aucun widget</p>
-                    <p class="text-gray-600 text-sm mt-2">Cliquez sur "Ajouter un widget" pour commencer</p>
-                </div>
-            {% else %}
-                <div id="widget-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {% for widget in dashboard.widgets %}
-                        <div class="widget-card bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-xl overflow-hidden transition group"
-                             data-widget-id="{{ widget.id }}"
-                             data-widget-type="{{ widget.type.value }}">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button data-action="click->dashboard#addWidget" data-dashboard-type-param="products_search"
+                    class="group p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100 border-2 border-blue-200 hover:border-blue-300 text-left transition-all hover:scale-105">
+                    <div class="text-4xl mb-3">🔍</div>
+                    <div class="text-base font-bold text-gray-800 mb-1">Recherche</div>
+                    <div class="text-sm text-gray-600">Trouvez des produits par nom</div>
+                </button>
 
-                            {# Header widget #}
-                            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <span class="text-gray-600 cursor-grab">⠿</span>
-                                    <span class="text-sm font-medium text-white truncate">{{ widget.title }}</span>
-                                    <span class="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-500 shrink-0">
-                                    {{ widget.type.label() }}
-                                </span>
-                                </div>
-                                <button
-                                    onclick="deleteWidget('{{ widget.id }}')"
-                                    class="text-gray-700 hover:text-red-400 transition opacity-0 group-hover:opacity-100 shrink-0 ml-2"
-                                    title="Supprimer">✕
-                                </button>
-                            </div>
+                <button data-action="click->dashboard#addWidget" data-dashboard-type-param="nutri_score_stats"
+                    class="group p-6 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-2 border-green-200 hover:border-green-300 text-left transition-all hover:scale-105">
+                    <div class="text-4xl mb-3">📊</div>
+                    <div class="text-base font-bold text-gray-800 mb-1">Nutri-Score</div>
+                    <div class="text-sm text-gray-600">Stats par catégorie</div>
+                </button>
 
-                            {# Body widget #}
-                            <div class="p-4" id="widget-body-{{ widget.id }}">
-                                <div class="flex items-center justify-center h-32 text-gray-600 text-sm">
-                                    <span class="animate-pulse">Chargement...</span>
-                                </div>
-                            </div>
+                <button data-action="click->dashboard#addWidget" data-dashboard-type-param="category_top"
+                    class="group p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 border-2 border-orange-200 hover:border-orange-300 text-left transition-all hover:scale-105">
+                    <div class="text-4xl mb-3">🏆</div>
+                    <div class="text-base font-bold text-gray-800 mb-1">Top produits</div>
+                    <div class="text-sm text-gray-600">Les meilleurs d'une catégorie</div>
+                </button>
 
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-        </main>
-
-        {# Modal ajout widget #}
-        <div id="modal-add-widget" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-lg font-semibold text-white">Choisir un widget</h2>
-                    <button onclick="document.getElementById('modal-add-widget').classList.add('hidden')"
-                            class="text-gray-500 hover:text-white transition text-xl">✕</button>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="addWidget('products_search')"
-                            class="p-4 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-blue-500 text-left transition">
-                        <div class="text-2xl mb-2">🔍</div>
-                        <div class="text-sm font-medium text-white">Recherche</div>
-                        <div class="text-xs text-gray-500 mt-0.5">Chercher des produits</div>
-                    </button>
-                    <button onclick="addWidget('nutri_score_stats')"
-                            class="p-4 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-green-500 text-left transition">
-                        <div class="text-2xl mb-2">📊</div>
-                        <div class="text-sm font-medium text-white">Nutri-Score</div>
-                        <div class="text-xs text-gray-500 mt-0.5">Stats par catégorie</div>
-                    </button>
-                    <button onclick="addWidget('category_top')"
-                            class="p-4 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-orange-500 text-left transition">
-                        <div class="text-2xl mb-2">🏆</div>
-                        <div class="text-sm font-medium text-white">Top catégorie</div>
-                        <div class="text-xs text-gray-500 mt-0.5">Meilleurs produits</div>
-                    </button>
-                    <button onclick="addWidget('product_detail')"
-                            class="p-4 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500 text-left transition">
-                        <div class="text-2xl mb-2">📦</div>
-                        <div class="text-sm font-medium text-white">Détail produit</div>
-                        <div class="text-xs text-gray-500 mt-0.5">Info par code-barres</div>
-                    </button>
-                </div>
+                <button data-action="click->dashboard#addWidget" data-dashboard-type-param="product_detail"
+                    class="group p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border-2 border-purple-200 hover:border-purple-300 text-left transition-all hover:scale-105">
+                    <div class="text-4xl mb-3">📦</div>
+                    <div class="text-base font-bold text-gray-800 mb-1">Détail produit</div>
+                    <div class="text-sm text-gray-600">Info par code-barres</div>
+                </button>
             </div>
         </div>
-
     </div>
 
-    <script>
-        // ── Charger les données de chaque widget ──────────────────────────────
-        document.querySelectorAll('.widget-card').forEach(card => {
-            const id   = card.dataset.widgetId;
-            const type = card.dataset.widgetType;
-            loadWidgetData(id, type);
-        });
-
-        async function loadWidgetData(id, type) {
-            const body = document.getElementById('widget-body-' + id);
-            try {
-                const res  = await fetch(`/dashboard/widget/${id}/data`);
-                const json = await res.json();
-                renderWidget(body, type, json.data);
-            } catch (e) {
-                body.innerHTML = '<div class="text-red-400 text-sm text-center py-8">⚠️ Erreur de chargement</div>';
-            }
-        }
-
-        function renderWidget(container, type, data) {
-            switch (type) {
-                case 'products_search':
-                case 'category_top':
-                    container.innerHTML = renderProductList(data);
-                    break;
-                case 'nutri_score_stats':
-                    container.innerHTML = renderNutriScore(data);
-                    break;
-                case 'product_detail':
-                    container.innerHTML = renderProductDetail(data);
-                    break;
-                default:
-                    container.innerHTML = '<div class="text-gray-500 text-sm text-center py-8">Widget inconnu</div>';
-            }
-        }
-
-        function renderProductList(products) {
-            if (!products || products.length === 0) {
-                return '<div class="text-gray-600 text-sm text-center py-8">Aucun produit</div>';
-            }
-            const nutriColors = { A:'bg-green-500', B:'bg-lime-500', C:'bg-yellow-500', D:'bg-orange-500', E:'bg-red-500', '?':'bg-gray-500' };
-            return `<ul class="space-y-2">
-        ${products.slice(0, 5).map(p => `
-            <li class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800 transition">
-                ${p.image ? `<img src="${p.image}" class="w-10 h-10 object-contain rounded bg-white" onerror="this.style.display='none'">` : '<div class="w-10 h-10 bg-gray-800 rounded flex items-center justify-center text-gray-600 text-xs">?</div>'}
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm text-white truncate">${p.name || 'Inconnu'}</p>
-                    <p class="text-xs text-gray-500 truncate">${p.brand || ''}</p>
-                </div>
-                <span class="text-xs font-bold px-1.5 py-0.5 rounded text-white ${nutriColors[p.nutriscore] || 'bg-gray-500'}">${p.nutriscore || '?'}</span>
-            </li>
-        `).join('')}
-    </ul>`;
-        }
-
-        function renderNutriScore(stats) {
-            if (!stats) return '<div class="text-gray-600 text-sm text-center py-8">Pas de données</div>';
-            const colors   = { A:'bg-green-500', B:'bg-lime-500', C:'bg-yellow-500', D:'bg-orange-500', E:'bg-red-500', '?':'bg-gray-700' };
-            const total    = Object.values(stats).reduce((a, b) => a + b, 0) || 1;
-            return `<div class="space-y-2">
-        ${Object.entries(stats).filter(([k]) => k !== '?').map(([grade, count]) => `
-            <div class="flex items-center gap-3">
-                <span class="text-xs font-bold w-5 text-center text-white px-1 py-0.5 rounded ${colors[grade]}">${grade}</span>
-                <div class="flex-1 bg-gray-800 rounded-full h-2">
-                    <div class="h-2 rounded-full ${colors[grade]}" style="width: ${Math.round(count/total*100)}%"></div>
-                </div>
-                <span class="text-xs text-gray-400 w-6 text-right">${count}</span>
-            </div>
-        `).join('')}
-    </div>`;
-        }
-
-        function renderProductDetail(product) {
-            if (!product || !product.name) {
-                return '<div class="text-gray-600 text-sm text-center py-8">Entrez un code-barres dans la config</div>';
-            }
-            const nutriColors = { A:'bg-green-500', B:'bg-lime-500', C:'bg-yellow-500', D:'bg-orange-500', E:'bg-red-500', '?':'bg-gray-500' };
-            return `<div class="flex gap-4 items-start">
-        ${product.image ? `<img src="${product.image}" class="w-16 h-16 object-contain rounded bg-white shrink-0">` : ''}
-        <div class="flex-1 min-w-0">
-            <p class="font-medium text-white truncate">${product.name}</p>
-            <p class="text-xs text-gray-500 mt-0.5">${product.brand || ''}</p>
-            <span class="inline-block mt-2 text-sm font-bold px-2 py-0.5 rounded text-white ${nutriColors[product.nutriscore] || 'bg-gray-500'}">
-                Nutri-Score ${product.nutriscore || '?'}
-            </span>
-        </div>
-    </div>`;
-        }
-
-        // ── Ajouter un widget ──────────────────────────────────────────────────
-        async function addWidget(type) {
-            document.getElementById('modal-add-widget').classList.add('hidden');
-            const res  = await fetch('/dashboard/widget/add', {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify({ type }),
-            });
-            if (res.ok) window.location.reload();
-        }
-
-        // ── Supprimer un widget ───────────────────────────────────────────────
-        async function deleteWidget(id) {
-            if (!confirm('Supprimer ce widget ?')) return;
-            const res = await fetch(`/dashboard/widget/${id}/delete`, { method: 'DELETE' });
-            if (res.ok) document.querySelector(`[data-widget-id="${id}"]`).remove();
-        }
-    </script>
+</div>
 {% endblock %}

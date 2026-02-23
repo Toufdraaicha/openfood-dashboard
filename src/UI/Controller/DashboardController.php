@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\UI\Controller;
 
-use App\Domain\Dashboard\Entity\Dashboard;
-use App\Domain\Dashboard\Entity\WidgetType;
-use App\Domain\Dashboard\Repository\DashboardRepositoryInterface;
 use App\Application\Port\OpenFoodFactsClientInterface;
 use App\Application\Query\SearchProducts\SearchProductsHandler;
 use App\Application\Query\SearchProducts\SearchProductsQuery;
+use App\Domain\Dashboard\Entity\Dashboard;
+use App\Domain\Dashboard\Entity\Widget;
+use App\Domain\Dashboard\Enum\WidgetType;
+use App\Domain\Dashboard\Repository\DashboardRepositoryInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,8 +54,12 @@ class DashboardController extends AbstractController
             return $this->json(['error' => 'Dashboard not found'], 404);
         }
 
-        $position = $dashboard->getWidgetCount();
-        $widget   = $dashboard->addWidget($type, $position);
+        // ✅ Créer le widget avant de l'ajouter
+        $position = $dashboard->getWidgets()->count();
+        $widget   = new Widget($dashboard, $type, $position);
+
+        // Maintenant addWidget() reçoit bien un Widget
+        $dashboard->addWidget($widget);
         $this->dashboardRepository->save($dashboard);
 
         return $this->json([
@@ -129,22 +134,21 @@ class DashboardController extends AbstractController
         $data = match ($widget->getType()) {
             WidgetType::ProductsSearch => $this->searchHandler->handle(
                 new SearchProductsQuery(
-                    $widget->getConfigValue('query', ''),
-                    $widget->getConfigValue('limit', 10),
+                    $widget->getConfigValue('query', 'nutella'),
+                    $widget->getConfigValueInt('limit', 10),
                 )
             ),
             WidgetType::CategoryTop => $this->offClient->getProductsByCategory(
                 $widget->getConfigValue('category', 'beverages'),
-                $widget->getConfigValue('limit', 5),
+                (int) $widget->getConfigValueInt('limit', 10),  // ✅ Cast en int
             ),
             WidgetType::ProductDetail => $this->offClient->getProductByBarcode(
-                $widget->getConfigValue('barcode', '')
+                $widget->getConfigValue('barcode', '3017620422003')
             ) ?? [],
             WidgetType::NutriScoreStats => $this->getNutriScoreStats(
                 $widget->getConfigValue('category', 'snacks')
             ),
         };
-
         return $this->json(['data' => $data]);
     }
 
@@ -186,4 +190,45 @@ class DashboardController extends AbstractController
 
         return $stats;
     }
+    #[Route('/dashboard/widget/{id}/edit', name: 'app_widget_edit', methods: ['GET', 'POST'])]
+    public function editWidget(string $id, Request $request): Response
+    {
+        $dashboard = $this->dashboardRepository->findByUser($this->getUser());
+
+        if (!$dashboard) {
+            throw $this->createNotFoundException('Dashboard not found');
+        }
+
+        $widget = null;
+        foreach ($dashboard->getWidgets() as $w) {
+            if ($w->getId() === $id) {
+                $widget = $w;
+                break;
+            }
+        }
+
+        if (!$widget) {
+            throw $this->createNotFoundException('Widget not found');
+        }
+
+        // Formulaire simple avec les données du widget
+        if ($request->isMethod('POST')) {
+            $data = $request->request->all();
+
+            // Retirer les champs système
+            unset($data['_token']);
+
+            $widget->updateConfig($data);
+            $this->dashboardRepository->save($dashboard);
+
+            $this->addFlash('success', 'Configuration enregistrée !');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        return $this->render('dashboard/widget_edit.html.twig', [
+            'widget' => $widget,
+        ]);
+    }
 }
+
+
