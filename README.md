@@ -1,12 +1,12 @@
-# 🥗 OFF Dashboard
+#  OFF Dashboard
 
 Dashboard personnalisable pour visualiser les données nutritionnelles d'Open Food Facts.
 
-## 🚀 Installation
+## Installation
 ```bash
 # Cloner le projet
-git clone <repo>
-cd off-dashboard
+git clone https://github.com/Toufdraaicha/openfood-dashboard.git
+cd openfood-dashboard
 
 # Démarrer Docker
 docker compose up -d
@@ -22,19 +22,15 @@ docker compose exec app php bin/console doctrine:migrations:migrate -n
 docker compose exec app php bin/console doctrine:fixtures:load -n
 ```
 
-## 🔑 Comptes de test
 
-- **Admin** : `admin@example.com` / `admin123`
-- **User** : `user@example.com` / `user123`
-
-## 📱 URLs
+##  URLs
 
 - **Dashboard** : http://localhost:84
 - **Admin** : http://localhost:84/admin
 - **API** : http://localhost:84/api/dashboard
 - **Mailpit** : http://localhost:8025
 
-## 🏗️ Architecture
+## Architecture
 
 ### Stack technique
 - **Backend** : Symfony 7.2, PHP 8.3
@@ -61,23 +57,21 @@ src/
     └── Admin/
 ```
 
-## 🔐 Sécurité
+##  Sécurité
 
 - ✅ Authentification 2FA par email
 - ✅ Blocage après 5 tentatives échouées
 - ✅ Sessions sécurisées (httpOnly cookies)
 - ✅ CSRF protection
-- ✅ Rate limiting API
-- ✅ Validation stricte côté serveur
 
-## 📊 Widgets disponibles
+## Widgets disponibles
 
-1. **🔍 Recherche** : Trouver des produits par nom/marque
-2. **📊 Nutri-Score** : Distribution statistique par catégorie
-3. **🏆 Top catégorie** : Meilleurs produits d'une catégorie
-4. **📦 Détail produit** : Fiche complète via code-barres
+1. **Recherche** : Trouver des produits par nom/marque
+2. **Nutri-Score** : Distribution statistique par catégorie
+3. **Top catégorie** : Meilleurs produits d'une catégorie
+4. **Détail produit** : Fiche complète via code-barres
 
-## 🧪 Tests
+## Tests
 ```bash
 # Tests unitaires
 docker compose exec app php bin/phpunit
@@ -87,7 +81,7 @@ docker compose exec app php bin/console lint:twig templates
 docker compose exec app php bin/console lint:yaml config
 ```
 
-## 🛠️ Commandes utiles
+## Commandes utiles
 ```bash
 # Vider le cache
 make clear
@@ -102,6 +96,4 @@ docker compose exec app sh
 docker compose exec database psql -U app -d app
 ```
 
-## 📄 License
 
-MIT
