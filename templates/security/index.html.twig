@@ -1,126 +1,185 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Dashboard — OFF{% endblock %}
+{% block title %}Mon tableau de bord{% endblock %}
 
 {% block body %}
-<div class="min-h-screen bg-gray-950">
+    <div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100"
+         data-controller="dashboard"
+         data-dashboard-reorder-url-value="{{ path('app_dashboard_reorder') }}">
 
-    {# Navbar #}
-    <nav class="border-b border-gray-800 bg-gray-900/50 backdrop-blur sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <span class="text-xl">🥗</span>
-                <span class="font-semibold text-white">OFF Dashboard</span>
-                <span class="text-gray-600 text-sm hidden sm:block">— {{ dashboard.name }}</span>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="text-sm text-gray-400">{{ app.user.email }}</span>
-                <a href="{{ path('app_logout') }}"
-                   class="text-sm px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 transition">
-                    Déconnexion
-                </a>
-            </div>
-        </div>
-    </nav>
-
-    {# Contenu #}
-    <main class="max-w-7xl mx-auto px-4 py-8">
-
-        {# Header #}
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <h1 class="text-2xl font-bold text-white">Mon Dashboard</h1>
-                <p class="text-gray-500 text-sm mt-1">
-                    {{ dashboard.widgetCount }} widget{{ dashboard.widgetCount > 1 ? 's' : '' }} •
-                    Mis à jour {{ dashboard.updatedAt | date('d/m/Y H:i') }}
-                </p>
-            </div>
-            <button
-                onclick="document.getElementById('add-widget-modal').classList.remove('hidden')"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition"
-            >
-                <span>+</span> Ajouter un widget
-            </button>
-        </div>
-
-        {# Grid widgets #}
-        {% if dashboard.widgets is empty %}
-        <div class="text-center py-24 text-gray-600">
-            <div class="text-5xl mb-4">📊</div>
-            <p class="text-lg font-medium text-gray-500">Aucun widget</p>
-            <p class="text-sm mt-1">Ajoutez votre premier widget pour commencer</p>
-        </div>
-        {% else %}
-        <div
-            id="widget-grid"
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-            data-controller="dashboard"
-            data-dashboard-reorder-url-value="{{ path('app_dashboard_reorder') }}"
-        >
-            {% for widget in dashboard.widgets %}
-            <div
-                class="widget-card bg-gray-900 border border-gray-800 rounded-xl overflow-hidden cursor-grab active:cursor-grabbing"
-                data-widget-id="{{ widget.id }}"
-            >
-                {# Widget header #}
-                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-                    <div class="flex items-center gap-2">
-                        <span class="text-gray-600">⠿</span>
-                        <span class="text-sm font-medium text-white">{{ widget.title }}</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-500">
-                                    {{ widget.type.label() }}
-                                </span>
+        {# ================= Navbar ================= #}
+        <nav class="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-gray-200 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-xl flex items-center justify-center shadow-md transition-transform transform hover:scale-105"
+                                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <span class="text-2xl animate-pulse">🥗</span>
+                            </div>
+                            <div>
+                                <h1 class="text-lg font-semibold text-gray-800">OFF Dashboard</h1>
+                                <p class="text-xs text-gray-500">Vos données alimentaires</p>
+                            </div>
+                        </div>
                     </div>
-                    <button class="text-gray-600 hover:text-red-400 text-sm transition" title="Supprimer">✕</button>
-                </div>
 
-                {# Widget body #}
-                <div class="p-4 min-h-32 flex items-center justify-center text-gray-600 text-sm">
-                    {% include 'dashboard/widgets/' ~ widget.type.value ~ '.html.twig'
-                    with { widget: widget }
-                    ignore missing
-                    %}
+                    <div class="flex items-center gap-3">
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <a href="/admin"
+                               class="px-3 py-2 rounded-lg bg-purple-50 border border-purple-200 text-purple-700 hover:bg-purple-100 font-medium text-sm transition transform hover:-translate-y-0.5">
+                                👑 Admin
+                            </a>
+                        {% endif %}
+
+                        <div class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200">
+                            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                            <span class="text-sm text-gray-700 font-medium">{{ app.user.email }}</span>
+                        </div>
+
+                        <a href="{{ path('app_logout') }}"
+                           class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium border border-gray-200 transition transform hover:-translate-y-0.5">
+                            Se déconnecter
+                        </a>
+                    </div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
-        {% endif %}
+        </nav>
 
-    </main>
+        {# ================= Main ================= #}
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-    {# Modal ajout widget #}
-    <div id="add-widget-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-lg font-semibold text-white">Ajouter un widget</h2>
-                <button onclick="document.getElementById('add-widget-modal').classList.add('hidden')"
-                        class="text-gray-500 hover:text-white transition">✕</button>
+            {# -------- Header chaleureux -------- #}
+            <div class="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">
+                        {% set hour = 'now'|date('H') %}
+                        {% if hour < 12 %}Bonjour ! ☀️
+                        {% elseif hour < 18 %}Bon après-midi ! 👋
+                        {% else %}Bonsoir ! 🌙{% endif %}
+                    </h2>
+                    <div class="flex items-center gap-3 text-sm text-gray-600">
+                        📊
+                        <span class="font-medium">{{ dashboard.widgets|length }} widget{{ dashboard.widgets|length > 1 ? 's' : '' }}</span>
+                        •
+                        <span>Mis à jour {{ dashboard.updatedAt|date('d/m/Y') }}</span>
+                    </div>
+                </div>
+
+                <button
+                    data-action="click->dashboard#openModal"
+                    class="group px-6 py-3 rounded-2xl font-bold text-white shadow-lg transition transform hover:scale-105 hover:shadow-xl flex items-center gap-2"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <span class="text-xl">+</span>
+                    <span>Ajouter un widget</span>
+                </button>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
-                <button class="widget-type-btn p-4 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-blue-500 text-left transition group">
-                    <div class="text-2xl mb-2">🔍</div>
-                    <div class="text-sm font-medium text-white">Recherche</div>
-                    <div class="text-xs text-gray-500 mt-0.5">Chercher des produits</div>
-                </button>
-                <button class="widget-type-btn p-4 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-green-500 text-left transition group">
-                    <div class="text-2xl mb-2">📊</div>
-                    <div class="text-sm font-medium text-white">Nutri-Score</div>
-                    <div class="text-xs text-gray-500 mt-0.5">Stats par catégorie</div>
-                </button>
-                <button class="widget-type-btn p-4 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-orange-500 text-left transition group">
-                    <div class="text-2xl mb-2">🏆</div>
-                    <div class="text-sm font-medium text-white">Top catégorie</div>
-                    <div class="text-xs text-gray-500 mt-0.5">Meilleurs produits</div>
-                </button>
-                <button class="widget-type-btn p-4 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500 text-left transition group">
-                    <div class="text-2xl mb-2">📦</div>
-                    <div class="text-sm font-medium text-white">Détail produit</div>
-                    <div class="text-xs text-gray-500 mt-0.5">Info par code-barres</div>
-                </button>
+            {# -------- État vide chaleureux -------- #}
+            {% if dashboard.widgets is empty %}
+                <div class="text-center py-20">
+                    <div class="mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 mb-6 flex items-center justify-center shadow-lg animate-bounce">
+                        <span class="text-6xl">📊</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-3">Votre tableau de bord est vide</h3>
+                    <p class="text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+                        Commencez par ajouter votre premier widget pour découvrir les données nutritionnelles des produits alimentaires
+                    </p>
+                    <button
+                        data-action="click->dashboard#openModal"
+                        class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-white shadow-lg hover:shadow-xl transition transform hover:-translate-y-1"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        ✨ Créer mon premier widget
+                    </button>
+                </div>
+            {% else %}
+                {# -------- Grille des widgets interactive -------- #}
+                <div data-dashboard-target="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for widget in dashboard.widgets %}
+                        <div class="group relative rounded-3xl bg-white border border-gray-200 hover:border-purple-300 shadow-md hover:shadow-xl transition transform hover:-translate-y-1 overflow-hidden cursor-pointer"
+                             data-controller="widget"
+                             data-widget-id-value="{{ widget.id }}"
+                             data-widget-type-value="{{ widget.type.value }}"
+                             data-widget-data-url-value="{{ path('app_widget_data', {id: widget.id}) }}"
+                             data-widget-id="{{ widget.id }}">
+
+                            {# Accent coloré #}
+                            <div class="absolute top-0 inset-x-0 h-2 rounded-t-3xl
+                             {% if widget.type.value == 'products_search' %}bg-gradient-to-r from-blue-400 to-cyan-400
+                             {% elseif widget.type.value == 'nutri_score_stats' %}bg-gradient-to-r from-green-400 to-emerald-400
+                             {% elseif widget.type.value == 'category_top' %}bg-gradient-to-r from-orange-400 to-amber-400
+                             {% else %}bg-gradient-to-r from-purple-400 to-pink-400{% endif %}"></div>
+
+                            {# Header widget #}
+                            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                                <div class="flex items-center gap-3 min-w-0 flex-1">
+                                    <div class="widget-handle flex items-center justify-center w-12 h-12 rounded-2xl shrink-0 transition transform group-hover:scale-110
+                                     {% if widget.type.value == 'products_search' %}bg-blue-50 border border-blue-200
+                                     {% elseif widget.type.value == 'nutri_score_stats' %}bg-green-50 border border-green-200
+                                     {% elseif widget.type.value == 'category_top' %}bg-orange-50 border border-orange-200
+                                     {% else %}bg-purple-50 border border-purple-200{% endif %}">
+                                        <span class="text-2xl">{% if widget.type.value == 'products_search' %}🔍{% elseif widget.type.value == 'nutri_score_stats' %}📊{% elseif widget.type.value == 'category_top' %}🏆{% else %}📦{% endif %}</span>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="text-sm font-bold text-gray-800 truncate">{{ widget.title }}</h3>
+                                        <p class="text-xs text-gray-500 truncate">{{ widget.type.label() }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <button data-action="click->widget#openConfig"
+                                            class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-purple-600 transition" title="Configurer">
+                                        ⚙️
+                                    </button>
+                                    <button data-action="click->widget#delete"
+                                            class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-red-600 transition" title="Supprimer">
+                                        🗑️
+                                    </button>
+                                </div>
+
+                            {# Body widget #}
+                            <div class="p-5" data-widget-target="body">
+                                <div class="flex items-center justify-center h-40 text-gray-400 text-sm animate-pulse">
+                                    Chargement...
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+                </div>
+        </main>
+
+        {# ================= Modal ajouter widget ================= #}
+        <div id="modal-add-widget" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+            <div class="bg-white rounded-3xl w-full max-w-2xl p-8 shadow-2xl border border-gray-200 transform transition-transform duration-300 scale-95 group-hover:scale-100">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-1">Choisissez votre widget</h2>
+                        <p class="text-gray-600 text-sm">Quel type de données souhaitez-vous visualiser ?</p>
+                    </div>
+                    <button data-action="click->dashboard#closeModal"
+                            class="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-800 transition text-xl">
+                        ✕
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {% for type, label, emoji, description in [
+                        ['products_search', 'Recherche', '🔍', 'Trouvez des produits par nom'],
+                        ['nutri_score_stats', 'Nutri-Score', '📊', 'Stats par catégorie'],
+                        ['category_top', 'Top produits', '🏆', 'Les meilleurs d\'une catégorie'],
+                        ['product_detail', 'Détail produit', '📦', 'Info par code-barres']
+                    ] %}
+                        <button data-action="click->dashboard#addWidget" data-dashboard-type-param="{{ type }}"
+                                class="group p-6 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 border border-gray-200 hover:border-gray-300 text-left transition transform hover:scale-105 shadow-sm hover:shadow-md">
+                            <div class="text-4xl mb-3">{{ emoji }}</div>
+                            <div class="text-base font-bold text-gray-800 mb-1">{{ label }}</div>
+                            <div class="text-sm text-gray-600">{{ description }}</div>
+                        </button>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
-
-</div>
 {% endblock %}

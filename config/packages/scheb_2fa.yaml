@@ -1,5 +1,17 @@
-# See the configuration reference at https://symfony.com/bundles/SchebTwoFactorBundle/6.x/configuration.html
 scheb_two_factor:
+    persister: scheb_two_factor.persister.doctrine
+    model_manager_name: ~
+
     security_tokens:
-        - Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken
         - Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken
+        - Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken
+
+    email:
+        enabled: true
+        sender_email: noreply@off-dashboard.local
+        sender_name: 'OFF Dashboard'
+        digits: 6
+        # ✅ Le template pour le FORMULAIRE (pas l'email)
+        template: security/2fa_email.html.twig
+
+

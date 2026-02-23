@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Infrastructure\Security;
 
 use App\Domain\User\Entity\LoginAttempt;
-use App\Domain\User\Repository\UserRepositoryInterface;
+use App\Domain\User\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
@@ -22,43 +21,40 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordCredentials;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
-use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
 class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 {
-    use TargetPathTrait;
-
-    public const string LOGIN_ROUTE = 'app_login';
-
     public function __construct(
-        private readonly UserRepositoryInterface $userRepository,
-        private readonly EntityManagerInterface  $entityManager,
-        private readonly RouterInterface         $router,
-        #[Autowire(service: 'monolog.logger.security')]
-        private readonly LoggerInterface         $logger,
+        private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly EntityManagerInterface $em,
+        private readonly LoggerInterface $securityLogger,
     ) {}
 
     public function authenticate(Request $request): Passport
     {
+        $email = $request->request->getString('email');
+        $password = $request->request->getString('password');
 
-        $email = $request->request->getString('_username');
-        $user  = $this->userRepository->findByEmail($email);
+        // Vérifier si l'utilisateur existe
+        $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
 
-        // ── Vérification blocage AVANT le mot de passe ──
-        if ($user?->isLocked()) {
-            $this->logger->warning('Login attempt on locked account', [
+        // Vérifier si le compte est bloqué AVANT de vérifier le password
+        if ($user && $user->isLocked()) {
+            $this->securityLogger->warning('Tentative de connexion sur compte bloqué', [
                 'email' => $email,
-                'ip'    => $request->getClientIp(),
+                'ip' => $request->getClientIp(),
             ]);
 
             throw new CustomUserMessageAuthenticationException(
-                'Votre compte est bloqué après trop de tentatives. Contactez un administrateur.'
+                'Votre compte a été bloqué après plusieurs tentatives échouées. Contactez un administrateur.'
             );
         }
 
+        $request->getSession()->set('_security.last_username', $email);
+
         return new Passport(
             new UserBadge($email),
-            new PasswordCredentials($request->request->getString('password')),
+            new PasswordCredentials($password),
             [
                 new CsrfTokenBadge('authenticate', $request->request->getString('_csrf_token')),
                 new RememberMeBadge(),
@@ -68,69 +64,69 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-
+        /** @var User $user */
         $user = $token->getUser();
 
-        if ($user instanceof \App\Domain\User\Entity\User) {
-            $user->recordSuccessfulLogin();
+        // Enregistrer tentative réussie
+        $user->recordSuccessfulLogin();
+        $this->recordLoginAttempt($user, $request->getClientIp(), true);
 
-            $attempt = new LoginAttempt(
-                $user,
-                $user->getEmail(),
-                $request->getClientIp() ?? 'unknown',
-                true,
-            );
+        $this->securityLogger->info('Connexion réussie', [
+            'email' => $user->getEmail(),
+            'ip' => $request->getClientIp(),
+        ]);
 
-            $this->entityManager->persist($attempt);
-            $this->entityManager->persist($user);
-            $this->entityManager->flush();
-
-            $this->logger->info('Login successful', [
-                'email' => $user->getEmail(),
-                'ip'    => $request->getClientIp(),
-                'ip'    => $request->getClientIp(),
-            ]);
-        }
-
-        if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
-            return new RedirectResponse($targetPath);
-        }
-
-        return new RedirectResponse($this->router->generate('app_dashboard'));
+        // Rediriger vers 2FA
+        return new RedirectResponse($this->urlGenerator->generate('2fa_login'));
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
-        $email = $request->request->getString('_username');
-        $user  = $this->userRepository->findByEmail($email);
+        $email = $request->request->getString('email');
 
-        if ($user !== null) {
+        // Enregistrer tentative échouée si l'utilisateur existe
+        $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
+        if ($user) {
             $user->recordFailedLogin();
-            $this->entityManager->persist($user);
+            $this->em->flush();
 
-            $this->logger->warning('Login failed', [
-                'email'    => $email,
-                'ip'       => $request->getClientIp(),
-                'attempts' => $user->getFailedLoginCount(),
-                'locked'   => $user->isLocked(),
+            $this->securityLogger->warning('Échec de connexion', [
+                'email' => $email,
+                'ip' => $request->getClientIp(),
+                'failed_attempts' => $user->getFailedLoginCount(),
+                'is_locked' => $user->isLocked(),
             ]);
+
+            if ($user->isLocked()) {
+                $this->securityLogger->critical('Compte bloqué automatiquement', [
+                    'email' => $email,
+                    'ip' => $request->getClientIp(),
+                ]);
+            }
         }
 
-        $attempt = new LoginAttempt(
-            $user,
-            $email,
-            $request->getClientIp() ?? 'unknown',
-            false,
-        );
+        $this->recordLoginAttempt($user, $request->getClientIp(), false);
 
-        $this->entityManager->persist($attempt);
-        $this->entityManager->flush();
+        $request->getSession()->set('_security.last_username', $email);
 
         return parent::onAuthenticationFailure($request, $exception);
     }
 
     protected function getLoginUrl(Request $request): string
     {
-        return $this->router->generate(self::LOGIN_ROUTE);
+        return $this->urlGenerator->generate('app_login');
+    }
+
+    private function recordLoginAttempt(?User $user, ?string $ipAddress, bool $success): void
+    {
+        $attempt = new LoginAttempt(
+            $user,
+            $user?->getEmail() ?? 'unknown',
+            $ipAddress ?? 'unknown',
+            $success
+        );
+
+        $this->em->persist($attempt);
+        $this->em->flush();
     }
 }
