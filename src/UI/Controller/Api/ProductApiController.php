@@ -7,25 +7,23 @@ namespace App\UI\Controller\Api;
 use App\Application\Port\OpenFoodFactsClientInterface;
 use App\Application\Query\SearchProducts\SearchProductsHandler;
 use App\Application\Query\SearchProducts\SearchProductsQuery;
-use Nelmio\ApiDocBundle\Attribute\Model;
 use Nelmio\ApiDocBundle\Attribute\Security;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api', name: 'api_')]
-
 #[OA\Tag(name: 'Produits')]
 #[Security(name: 'Bearer')]
 class ProductApiController extends AbstractController
 {
     public function __construct(
-        private readonly SearchProductsHandler        $searchHandler,
+        private readonly SearchProductsHandler $searchHandler,
         private readonly OpenFoodFactsClientInterface $offClient,
-    ) {}
+    ) {
+    }
 
     #[Route('/products/search', name: 'products_search', methods: ['GET'])]
     #[OA\Get(
@@ -84,19 +82,17 @@ class ProductApiController extends AbstractController
     )]
     public function search(Request $request): JsonResponse
     {
-        $query    = $request->query->getString('q');
-        $limit    = $request->query->getInt('limit', 10);
+        $query = $request->query->getString('q');
+        $limit = $request->query->getInt('limit', 10);
         $category = $request->query->getString('category');
-
-
 
         $products = $this->searchHandler->handle(
             new SearchProductsQuery($query, $limit, $category)
         );
 
         return $this->json([
-            'query'    => $query,
-            'total'    => count($products),
+            'query' => $query,
+            'total' => count($products),
             'products' => $products,
         ]);
     }
@@ -156,12 +152,12 @@ class ProductApiController extends AbstractController
     )]
     public function byCategory(string $category, Request $request): JsonResponse
     {
-        $limit    = $request->query->getInt('limit', 5);
+        $limit = $request->query->getInt('limit', 5);
         $products = $this->offClient->getProductsByCategory($category, $limit);
 
         return $this->json([
             'category' => $category,
-            'total'    => count($products),
+            'total' => count($products),
             'products' => $products,
         ]);
     }
