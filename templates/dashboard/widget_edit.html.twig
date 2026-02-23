@@ -1,0 +1,154 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ widget.title }}{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 p-4">
+    
+    <div class="max-w-2xl mx-auto">
+        
+        {# Breadcrumb #}
+        <div class="mb-6">
+            <a href="{{ path('app_dashboard') }}" class="text-sm text-gray-600 hover:text-gray-900 inline-flex items-center gap-1">
+                ← Retour au tableau de bord
+            </a>
+        </div>
+
+        {# Card principale #}
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            
+            {# Header #}
+            <div class="px-8 py-6 border-b border-gray-200">
+                <div class="flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-lg flex items-center justify-center text-3xl
+                                {% if widget.type.value == 'products_search' %}bg-blue-50
+                                {% elseif widget.type.value == 'nutri_score_stats' %}bg-green-50
+                                {% elseif widget.type.value == 'category_top' %}bg-orange-50
+                                {% else %}bg-purple-50{% endif %}">
+                        {% if widget.type.value == 'products_search' %}🔍
+                        {% elseif widget.type.value == 'nutri_score_stats' %}📊
+                        {% elseif widget.type.value == 'category_top' %}🏆
+                        {% else %}📦{% endif %}
+                    </div>
+                    <div class="flex-1">
+                        <h1 class="text-2xl font-semibold text-gray-900">{{ widget.title }}</h1>
+                        <p class="text-sm text-gray-600 mt-1">{{ widget.type.label() }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {# Formulaire #}
+            <form method="post" class="px-8 py-6 space-y-6">
+
+                {% if widget.type.value == 'products_search' %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Terme de recherche</label>
+                        <input type="text" 
+                               name="query" 
+                               value="{{ widget.configValue('query', 'nutella') }}"
+                               placeholder="Exemple : coca cola"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <p class="text-xs text-gray-500 mt-2">Nom ou marque du produit à rechercher</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Nombre de résultats</label>
+                        <select name="limit" class="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {% for i in [5, 10, 15, 20, 25] %}
+                                <option value="{{ i }}" {% if widget.configValue('limit', 10) == i %}selected{% endif %}>{{ i }} produits</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                {% elseif widget.type.value == 'nutri_score_stats' %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Catégorie</label>
+                        <select name="category" class="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                            {% set categories = ['snacks', 'beverages', 'dairy', 'cereals', 'chocolates', 'cheeses'] %}
+                            {% for cat in categories %}
+                                <option value="{{ cat }}" {% if widget.configValue('category', 'snacks') == cat %}selected{% endif %}>
+                                    {{ cat|title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                {% elseif widget.type.value == 'category_top' %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Catégorie</label>
+                        <select name="category" class="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            {% set categories = ['beverages', 'snacks', 'dairy', 'cereals'] %}
+                            {% for cat in categories %}
+                                <option value="{{ cat }}" {% if widget.configValue('category', 'beverages') == cat %}selected{% endif %}>
+                                    {{ cat|title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Nombre de produits</label>
+                        <input type="range" 
+                               name="limit" 
+                               value="{{ widget.configValue('limit', 5) }}"
+                               min="3" max="10" step="1"
+                               oninput="this.nextElementSibling.textContent = this.value"
+                               class="w-full">
+                        <div class="text-center text-sm text-gray-700 font-medium mt-2">
+                            <span>{{ widget.configValue('limit', 5) }}</span> produits
+                        </div>
+                    </div>
+
+                {% elseif widget.type.value == 'product_detail' %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Code-barres</label>
+                        <input type="text" 
+                               name="barcode" 
+                               value="{{ widget.configValue('barcode', '3017620422003') }}"
+                               placeholder="3017620422003"
+                               pattern="[0-9]{8,13}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-md font-mono focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <p class="text-xs text-gray-500 mt-2">Code-barres EAN-8 ou EAN-13 du produit</p>
+                    </div>
+                    
+                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-md">
+                        <p class="text-sm text-blue-900">
+                            <strong>💡 Astuce :</strong> Vous pouvez scanner le code-barres sur l'emballage du produit ou le trouver sur 
+                            <a href="https://world.openfoodfacts.org" target="_blank" class="underline font-medium">Open Food Facts</a>
+                        </p>
+                    </div>
+                {% endif %}
+
+                <input type="hidden" name="_token" value="{{ csrf_token('widget_config') }}">
+
+                {# Actions #}
+                <div class="flex items-center gap-3 pt-6 border-t border-gray-200">
+                    <button type="submit" 
+                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition">
+                        Enregistrer les modifications
+                    </button>
+                    <a href="{{ path('app_dashboard') }}" 
+                       class="px-6 py-2.5 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 font-medium rounded-md transition">
+                        Annuler
+                    </a>
+                </div>
+            </form>
+
+            {# Zone danger #}
+            <div class="px-8 py-6 bg-gray-50 border-t border-gray-200">
+                <h3 class="text-sm font-medium text-gray-900 mb-3">Zone de danger</h3>
+                <form method="post" 
+                      action="{{ path('app_widget_delete', {id: widget.id}) }}" 
+                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce widget ? Cette action est irréversible.')"
+                      class="inline-block">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit" 
+                            class="px-4 py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-sm font-medium rounded-md transition">
+                        Supprimer ce widget
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

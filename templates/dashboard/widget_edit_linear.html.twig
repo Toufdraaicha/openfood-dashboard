@@ -1,0 +1,125 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ widget.title }}{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-zinc-950 text-white">
+    
+    {# Navbar #}
+    <nav class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur">
+        <div class="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+            <a href="{{ path('app_dashboard') }}" class="text-sm text-zinc-400 hover:text-white transition">
+                ← Dashboard
+            </a>
+            <div class="text-xs text-zinc-500">Modification du widget</div>
+        </div>
+    </nav>
+
+    <div class="max-w-3xl mx-auto px-6 py-12">
+        
+        {# Header #}
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center text-2xl
+                            {% if widget.type.value == 'products_search' %}bg-blue-500/10
+                            {% elseif widget.type.value == 'nutri_score_stats' %}bg-green-500/10
+                            {% elseif widget.type.value == 'category_top' %}bg-orange-500/10
+                            {% else %}bg-purple-500/10{% endif %}">
+                    {% if widget.type.value == 'products_search' %}🔍
+                    {% elseif widget.type.value == 'nutri_score_stats' %}📊
+                    {% elseif widget.type.value == 'category_top' %}🏆
+                    {% else %}📦{% endif %}
+                </div>
+                <div>
+                    <h1 class="text-2xl font-semibold">{{ widget.title }}</h1>
+                    <p class="text-sm text-zinc-500">{{ widget.type.label() }}</p>
+                </div>
+            </div>
+        </div>
+
+        {# Formulaire #}
+        <form method="post" class="space-y-6">
+
+            {% if widget.type.value == 'products_search' %}
+                <div>
+                    <label class="block text-sm font-medium text-zinc-300 mb-2">Recherche</label>
+                    <input type="text" 
+                           name="query" 
+                           value="{{ widget.configValue('query', 'nutella') }}"
+                           class="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-300 mb-2">Limite</label>
+                    <input type="number" 
+                           name="limit" 
+                           value="{{ widget.configValue('limit', 10) }}"
+                           min="1" max="50"
+                           class="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+            {% elseif widget.type.value == 'nutri_score_stats' %}
+                <div>
+                    <label class="block text-sm font-medium text-zinc-300 mb-2">Catégorie</label>
+                    <input type="text" 
+                           name="category" 
+                           value="{{ widget.configValue('category', 'snacks') }}"
+                           class="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+
+            {% elseif widget.type.value == 'category_top' %}
+                <div>
+                    <label class="block text-sm font-medium text-zinc-300 mb-2">Catégorie</label>
+                    <input type="text" 
+                           name="category" 
+                           value="{{ widget.configValue('category', 'beverages') }}"
+                           class="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-300 mb-2">Limite</label>
+                    <input type="number" 
+                           name="limit" 
+                           value="{{ widget.configValue('limit', 5) }}"
+                           min="1" max="20"
+                           class="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+
+            {% elseif widget.type.value == 'product_detail' %}
+                <div>
+                    <label class="block text-sm font-medium text-zinc-300 mb-2">Code-barres</label>
+                    <input type="text" 
+                           name="barcode" 
+                           value="{{ widget.configValue('barcode', '3017620422003') }}"
+                           class="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-white font-mono focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+            {% endif %}
+
+            <input type="hidden" name="_token" value="{{ csrf_token('widget_config') }}">
+
+            {# Actions #}
+            <div class="flex items-center gap-3 pt-6">
+                <button type="submit" 
+                        class="px-6 py-2.5 bg-white text-zinc-900 font-medium rounded-lg hover:bg-zinc-100 transition">
+                    Enregistrer
+                </button>
+                <a href="{{ path('app_dashboard') }}" 
+                   class="px-6 py-2.5 bg-zinc-800 text-white font-medium rounded-lg hover:bg-zinc-700 transition">
+                    Annuler
+                </a>
+                
+                <div class="flex-1"></div>
+                
+                <form method="post" 
+                      action="{{ path('app_widget_delete', {id: widget.id}) }}" 
+                      onsubmit="return confirm('Supprimer ?')"
+                      class="inline-block">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit" 
+                            class="px-4 py-2.5 text-red-400 hover:text-red-300 text-sm font-medium transition">
+                        Supprimer
+                    </button>
+                </form>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
